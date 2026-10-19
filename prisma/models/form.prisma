@@ -1,0 +1,22 @@
+model Form {
+    id          String     @id @default(cuid())
+    title       String
+    description String?
+    slug        String     @unique
+    status      FormStatus @default(DRAFT)
+    publishedAt DateTime?
+
+    ownerId String
+    owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+    questions      Question[]
+    responses      Response[]
+    widgetSettings WidgetSettings?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([ownerId, status])
+    @@index([ownerId, createdAt])
+    @@map("forms")
+}

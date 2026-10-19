@@ -1,0 +1,20 @@
+model WidgetSettings {
+    id     String @id @default(cuid())
+    formId String @unique
+    form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+    botName           String   @default("Assistant")
+    primaryColor      String   @default("#4F46E5")
+    backgroundColor   String   @default("#FFFFFF")
+    textColor         String   @default("#111827")
+    welcomeMessage    String   @default("Hi there! 👋 Mind answering a few quick questions?")
+    completionMessage String   @default("Thanks! Your response has been recorded.")
+    launcherLabel     String?
+    position          String   @default("bottom-right")
+    allowedDomains    String[] @default([])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("widget_settings")
+}

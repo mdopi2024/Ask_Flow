@@ -1,0 +1,23 @@
+enum Role {
+    USER
+    ADMIN
+}
+
+enum FormStatus {
+    DRAFT
+    PUBLISHED
+    UNPUBLISHED
+}
+
+enum QuestionType {
+    TEXT
+    EMAIL
+    MULTIPLE_CHOICE
+    YES_NO
+}
+
+enum ResponseSource {
+    CHATBOT_WIDGET
+    PUBLIC_LINK
+    PREVIEW
+}

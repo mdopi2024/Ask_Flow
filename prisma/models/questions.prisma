@@ -1,0 +1,21 @@
+model Question {
+    id     String @id @default(cuid())
+    formId String
+    form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+    type        QuestionType
+    label       String
+    placeholder String?
+    helpText    String?
+    required    Boolean      @default(true)
+    order       Int
+    options     String[]     @default([])
+
+    answers Answer[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([formId, order])
+    @@map("questions")
+}
