@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (_req: Request, res: Response) => {
-  res.send("Formly Chat Backend");
+  res.send("Ask Flow Backend");
 });
 app.get("/health", (_req: Request, res: Response) => {
   res.json({ success: true, message: "Server is healthy 🚀" });
