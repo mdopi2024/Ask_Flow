@@ -4,6 +4,7 @@ import status from "http-status";
 import { formServices } from "./form.services";
 import { CreateFormInput, UpdateFormInput } from "@/types/form.types";
 import { Request, Response } from "express";
+import formValidator from "./form.validator";
 
 const createForm = catchAsync(async (req: Request, res: Response) => {
     const payload: CreateFormInput = req.body;
@@ -11,21 +12,30 @@ const createForm = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.CREATED, "Form created successfully", data);
 });
 
-// const getForms = catchAsync(async (req: Request, res: Response) => {
-//     const query = formValidator.listFormsQuerySchema.parse(req.query);
-//     const data = await formServices.getForms((req as any).user.id, query);
-//     sendResponse(res, status.OK, "Forms fetched successfully", data);
-// });
+const getFormsByOwnerId = catchAsync(async (req: Request, res: Response) => {
+    const ownerId = (req as any).user.id;
 
+    const query = formValidator.listFormsQuerySchema.parse({
+        page: req.query.page ?? 1,
+        limit: req.query.limit ?? 10,
+        sort: req.query.sort ?? "newest",
+        status: req.query.status,
+        search: req.query.search,
+    });
+
+    const data = await formServices.getFormsByOwnerId(ownerId, query);
+
+    sendResponse(res, status.OK, "Forms fetched successfully", data);
+});
 // const getFormStats = catchAsync(async (req: Request, res: Response) => {
 //     const data = await formServices.getFormStats((req as any).user.id);
 //     sendResponse(res, status.OK, "Form stats fetched successfully", data);
 // });
 
-// const getFormById = catchAsync(async (req: Request, res: Response) => {
-//     const data = await formServices.getFormById(req.params.id as string, (req as any).user.id);
-//     sendResponse(res, status.OK, "Form fetched successfully", data);
-// });
+const getFormById = catchAsync(async (req: Request, res: Response) => {
+    const data = await formServices.getFormById(req.params.id as string, (req as any).user.id);
+    sendResponse(res, status.OK, "Form fetched successfully", data);
+});
 
 // const updateForm = catchAsync(async (req: Request, res: Response) => {
 //     const payload: UpdateFormInput = req.body;
@@ -55,9 +65,9 @@ const createForm = catchAsync(async (req: Request, res: Response) => {
 
 export const formController: Record<string, any> = {
     createForm,
-    // getForms,
+    getFormsByOwnerId,
     // getFormStats,
-    // getFormById,
+    getFormById,
     // updateForm,
     // deleteForm,
     // publishForm,

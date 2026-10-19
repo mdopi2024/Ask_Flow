@@ -13,11 +13,19 @@ const updateFormSchema = z.object({
     message: "At least one field must be provided",
 });
 
+const listFormsQuerySchema = z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(10),
+    status: z.nativeEnum(FormStatus).optional(),
+    search: z.string().trim().max(100).optional(),
+    sort: z.enum(["newest", "oldest"]).default("newest"),
+});
 
 
 const formValidator = {
     createFormSchema,
     updateFormSchema,
+    listFormsQuerySchema,
 };
 
 export default formValidator;

@@ -43,31 +43,46 @@ export const createForm = async (ownerId: string, payload: CreateFormInput) => {
     return data;
 };
 
-// export const getForms = async (ownerId: string, query: ListFormsQuery) => {
-//     const { page, limit, status: formStatus, search, sort } = query;
+export const getFormsByOwnerId = async (ownerId: string, query: ListFormsQuery) => {
+    const { page, limit, status: formStatus, search, sort } = query;
 
-//     const where: Prisma.FormWhereInput = {
-//         ownerId,
-//         ...(formStatus && { status: formStatus }),
-//         ...(search && { title: { contains: search, mode: "insensitive" } }),
-//     };
 
-//     const [items, total] = await prisma.$transaction([
-//         prisma.form.findMany({
-//             where,
-//             orderBy: { createdAt: sort === "newest" ? "desc" : "asc" },
-//             skip: (page - 1) * limit,
-//             take: limit,
-//             include: { _count: { select: { questions: true, responses: true } } },
-//         }),
-//         prisma.form.count({ where }),
-//     ]);
+    const where: Prisma.FormWhereInput = { ownerId };
 
-//     return {
-//         items,
-//         meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-//     };
-// };
+    if (formStatus) {
+        where.status = formStatus;
+    }
+
+    if (search) {
+        where.title = { contains: search, mode: "insensitive" };
+    }
+
+    const orderBy = { createdAt: sort === "newest" ? "desc" : "asc" } as const;
+    const skip = (page - 1) * limit;
+
+    const items = await prisma.form.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: {
+            _count: { select: { questions: true, responses: true } },
+        },
+    });
+
+    const total = await prisma.form.count({ where });
+
+    // 4. Return the forms with pagination info
+    return {
+        items,
+        meta: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+        },
+    };
+};
 
 // export const getFormStats = async (ownerId: string) => {
 //     const [totalForms, publishedForms, totalResponses] = await prisma.$transaction([
@@ -84,22 +99,20 @@ export const createForm = async (ownerId: string, payload: CreateFormInput) => {
 //     };
 // };
 
-// export const getFormById = async (id: string, ownerId: string) => {
-//     const data = await prisma.form.findFirst({
-//         where: { id, ownerId },
-//         include: {
-//             questions: { orderBy: { order: "asc" } },
-//             widgetSettings: true,
-//             _count: { select: { responses: true } },
-//         },
-//     });
-
-//     if (!data) {
-//         throw new AppError(status.NOT_FOUND, "Form not found");
-//     }
-
-//     return data;
-// };
+export const getFormById = async (id: string, ownerId: string) => {
+    const data = await prisma.form.findFirst({
+        where: { id, ownerId },
+        include: {
+            questions: { orderBy: { order: "asc" } },
+            widgetSettings: true,
+            _count: { select: { responses: true } },
+        },
+    });
+    if (!data) {
+        throw new AppError(status.NOT_FOUND, "Form not found");
+    }
+    return data;
+};
 
 // export const updateForm = async (id: string, ownerId: string, payload: UpdateFormInput) => {
 //     await getOwnedForm(id, ownerId);
@@ -174,9 +187,9 @@ export const createForm = async (ownerId: string, payload: CreateFormInput) => {
 
 export const formServices = {
     createForm,
-    // getForms,
+    getFormsByOwnerId,
     // getFormStats,
-    // getFormById,
+    getFormById,
     // updateForm,
     // deleteForm,
     // publishForm,
