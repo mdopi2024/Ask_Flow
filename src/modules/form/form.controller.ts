@@ -56,10 +56,10 @@ const updateForm = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.OK, "Form updated successfully", data);
 });
 
-// const deleteForm = catchAsync(async (req: Request, res: Response) => {
-//     const data = await formServices.deleteForm(req.params.id as string, (req as any).user.id);
-//     sendResponse(res, status.OK, "Form deleted successfully", data);
-// });
+const deleteForm = catchAsync(async (req: Request, res: Response) => {
+    const data = await formServices.deleteForm(req.params.id as string, (req as any).user.id);
+    sendResponse(res, status.OK, "Form deleted successfully", data);
+});
 
 // const publishForm = catchAsync(async (req: Request, res: Response) => {
 //     const data = await formServices.publishForm(req.params.id as string, (req as any).user.id);
@@ -81,7 +81,7 @@ export const formController: Record<string, any> = {
     getFormsByOwnerId,
     getFormById,
     updateForm,
-    // deleteForm,
+    deleteForm,
     // publishForm,
     // unpublishForm,
     // getPublicForm,

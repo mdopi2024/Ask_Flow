@@ -13,6 +13,7 @@ router.post("/create", checkAuth(), validateRequest(formValidator.createFormSche
 router.get("/", checkAuth(), formController.getFormsByOwnerId);
 router.get("/:id", checkAuth(), formController.getFormById);
 router.patch("/update/:id", checkAuth(), validateRequest(formValidator.updateFormSchema), formController.updateForm);
+router.delete("/delete/:id", checkAuth(), formController.deleteForm);
 
 
 

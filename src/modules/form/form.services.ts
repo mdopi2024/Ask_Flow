@@ -137,13 +137,13 @@ export const updateForm = async (id: string, ownerId: string, payload: UpdateFor
     return data;
 };
 
-// export const deleteForm = async (id: string, ownerId: string) => {
-//     await getOwnedForm(id, ownerId);
+export const deleteForm = async (id: string, ownerId: string) => {
+    await getOwnedForm(id, ownerId);
 
-//     await prisma.form.delete({ where: { id } });
+    await prisma.form.delete({ where: { id } });
 
-//     return null;
-// };
+    return null;
+};
 
 // export const publishForm = async (id: string, ownerId: string) => {
 //     const form = await getOwnedForm(id, ownerId);
@@ -202,7 +202,7 @@ export const formServices = {
     getFormsByOwnerId,
     getFormById,
     updateForm,
-    // deleteForm,
+    deleteForm,
     // publishForm,
     // unpublishForm,
     // getPublicFormBySlug,
