@@ -5,6 +5,7 @@ import { formServices } from "./form.services";
 import { CreateFormInput, UpdateFormInput } from "@/types/form.types";
 import { Request, Response } from "express";
 import formValidator from "./form.validator";
+import { FormStatus } from "@/generated/prisma/enums";
 
 const createForm = catchAsync(async (req: Request, res: Response) => {
     const payload: CreateFormInput = req.body;
@@ -39,11 +40,21 @@ const getFormById = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.OK, "Form fetched successfully", data);
 });
 
-// const updateForm = catchAsync(async (req: Request, res: Response) => {
-//     const payload: UpdateFormInput = req.body;
-//     const data = await formServices.updateForm(req.params.id as string, (req as any).user.id, payload);
-//     sendResponse(res, status.OK, "Form updated successfully", data);
-// });
+const updateForm = catchAsync(async (req: Request, res: Response) => {
+    const payload: UpdateFormInput = { ...req.body };
+
+    if (typeof payload.status === 'string') {
+        payload.status = (payload.status as string).trim().toUpperCase() as FormStatus;
+    }
+
+    const data = await formServices.updateForm(
+        req.params.id as string,
+        (req as any).user.id,
+        payload
+    );
+
+    sendResponse(res, status.OK, "Form updated successfully", data);
+});
 
 // const deleteForm = catchAsync(async (req: Request, res: Response) => {
 //     const data = await formServices.deleteForm(req.params.id as string, (req as any).user.id);
@@ -68,9 +79,8 @@ const getFormById = catchAsync(async (req: Request, res: Response) => {
 export const formController: Record<string, any> = {
     createForm,
     getFormsByOwnerId,
-    // getFormStats,
     getFormById,
-    // updateForm,
+    updateForm,
     // deleteForm,
     // publishForm,
     // unpublishForm,

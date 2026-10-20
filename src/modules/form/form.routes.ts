@@ -12,6 +12,8 @@ const router: Router = Router();
 router.post("/create", checkAuth(), validateRequest(formValidator.createFormSchema), formController.createForm);
 router.get("/", checkAuth(), formController.getFormsByOwnerId);
 router.get("/:id", checkAuth(), formController.getFormById);
+router.patch("/update/:id", checkAuth(), validateRequest(formValidator.updateFormSchema), formController.updateForm);
+
 
 
 

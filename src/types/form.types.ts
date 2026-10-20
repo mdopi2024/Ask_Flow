@@ -6,9 +6,12 @@ export interface CreateFormInput {
     description?: string | null;
 }
 
+
+
 export interface UpdateFormInput {
     title?: string;
     description?: string | null;
+    status?: FormStatus;
 }
 
 export interface ListFormsQuery {

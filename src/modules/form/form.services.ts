@@ -7,6 +7,8 @@ import { FormStatus } from "@/generated/prisma/enums";
 import { CreateFormInput, ListFormsQuery, UpdateFormInput } from "@/types/form.types";
 import { Prisma } from "@/generated/prisma/client";
 
+//--------------------------------------------------
+
 const generateSlug = (title: string): string => {
     const base =
         title
@@ -18,15 +20,17 @@ const generateSlug = (title: string): string => {
     return `${base}-${randomBytes(4).toString("hex")}`;
 };
 
-// const getOwnedForm = async (id: string, ownerId: string) => {
-//     const form = await prisma.form.findFirst({ where: { id, ownerId } });
+const getOwnedForm = async (id: string, ownerId: string) => {
+    const form = await prisma.form.findFirst({ where: { id, ownerId } });
 
-//     if (!form) {
-//         throw new AppError(status.NOT_FOUND, "Form not found");
-//     }
+    if (!form) {
+        throw new AppError(status.NOT_FOUND, "Form not found");
+    }
 
-//     return form;
-// };
+    return form;
+};
+
+//--------------------------------------------
 
 export const createForm = async (ownerId: string, payload: CreateFormInput) => {
     const { title, description } = payload;
@@ -69,10 +73,8 @@ export const getFormsByOwnerId = async (ownerId: string, query: ListFormsQuery) 
             },
         }),
 
-        // filter এর পরের মোট সংখ্যা (pagination এর জন্য)
         prisma.form.count({ where }),
 
-        // stats: filter ছাড়া, এক query তে সব status
         prisma.form.groupBy({
             by: ["status"],
             where: { ownerId },
@@ -122,16 +124,18 @@ export const getFormById = async (id: string, ownerId: string) => {
     return data;
 };
 
-// export const updateForm = async (id: string, ownerId: string, payload: UpdateFormInput) => {
-//     await getOwnedForm(id, ownerId);
 
-//     const data = await prisma.form.update({
-//         where: { id },
-//         data: payload,
-//     });
 
-//     return data;
-// };
+export const updateForm = async (id: string, ownerId: string, payload: UpdateFormInput) => {
+    await getOwnedForm(id, ownerId);
+
+    const data = await prisma.form.update({
+        where: { id },
+        data: payload,
+    });
+
+    return data;
+};
 
 // export const deleteForm = async (id: string, ownerId: string) => {
 //     await getOwnedForm(id, ownerId);
@@ -197,7 +201,7 @@ export const formServices = {
     createForm,
     getFormsByOwnerId,
     getFormById,
-    // updateForm,
+    updateForm,
     // deleteForm,
     // publishForm,
     // unpublishForm,
