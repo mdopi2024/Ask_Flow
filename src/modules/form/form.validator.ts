@@ -13,13 +13,19 @@ const updateFormSchema = z.object({
     message: "At least one field must be provided",
 });
 
-const listFormsQuerySchema = z.object({
+
+
+export const listFormsQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(50).default(10),
-    status: z.nativeEnum(FormStatus).optional(),
-    search: z.string().trim().max(100).optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+    status: z.enum(FormStatus).optional(), // DRAFT | PUBLISHED | UNPUBLISHED
+    search: z.string().trim().min(1).optional(),
     sort: z.enum(["newest", "oldest"]).default("newest"),
 });
+
+
+
+
 
 
 const formValidator = {

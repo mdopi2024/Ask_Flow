@@ -44,35 +44,51 @@ export const createForm = async (ownerId: string, payload: CreateFormInput) => {
 };
 
 export const getFormsByOwnerId = async (ownerId: string, query: ListFormsQuery) => {
-    const { page, limit, status: formStatus, search, sort } = query;
-
+    const { page, limit, status, search, sort } = query;
 
     const where: Prisma.FormWhereInput = { ownerId };
 
-    if (formStatus) {
-        where.status = formStatus;
-    }
+    if (status) where.status = status;
 
     if (search) {
         where.title = { contains: search, mode: "insensitive" };
     }
 
-    const orderBy = { createdAt: sort === "newest" ? "desc" : "asc" } as const;
-    const skip = (page - 1) * limit;
+    const orderBy: Prisma.FormOrderByWithRelationInput = {
+        createdAt: sort === "newest" ? "desc" : "asc",
+    };
 
-    const items = await prisma.form.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        include: {
-            _count: { select: { questions: true, responses: true } },
-        },
-    });
+    const [items, total, statusGroups, totalResponses] = await Promise.all([
+        prisma.form.findMany({
+            where,
+            orderBy,
+            skip: (page - 1) * limit,
+            take: limit,
+            include: {
+                _count: { select: { questions: true, responses: true } },
+            },
+        }),
 
-    const total = await prisma.form.count({ where });
+        // filter এর পরের মোট সংখ্যা (pagination এর জন্য)
+        prisma.form.count({ where }),
 
-    // 4. Return the forms with pagination info
+        // stats: filter ছাড়া, এক query তে সব status
+        prisma.form.groupBy({
+            by: ["status"],
+            where: { ownerId },
+            _count: { _all: true },
+        }),
+
+        prisma.response.count({ where: { form: { ownerId } } }),
+    ]);
+
+    const countOf = (s: FormStatus) =>
+        statusGroups.find((g) => g.status === s)?._count._all ?? 0;
+
+    const publishedForms = countOf(FormStatus.PUBLISHED);
+    const draftForms = countOf(FormStatus.DRAFT);
+    const unpublishedForms = countOf(FormStatus.UNPUBLISHED);
+
     return {
         items,
         meta: {
@@ -81,23 +97,15 @@ export const getFormsByOwnerId = async (ownerId: string, query: ListFormsQuery) 
             total,
             totalPages: Math.ceil(total / limit),
         },
+        stats: {
+            totalForms: publishedForms + draftForms + unpublishedForms,
+            publishedForms,
+            draftForms,
+            unpublishedForms,
+            totalResponses,
+        },
     };
 };
-
-// export const getFormStats = async (ownerId: string) => {
-//     const [totalForms, publishedForms, totalResponses] = await prisma.$transaction([
-//         prisma.form.count({ where: { ownerId } }),
-//         prisma.form.count({ where: { ownerId, status: FormStatus.PUBLISHED } }),
-//         prisma.response.count({ where: { form: { ownerId } } }),
-//     ]);
-
-//     return {
-//         totalForms,
-//         publishedForms,
-//         draftForms: totalForms - publishedForms,
-//         totalResponses,
-//     };
-// };
 
 export const getFormById = async (id: string, ownerId: string) => {
     const data = await prisma.form.findFirst({
@@ -188,7 +196,6 @@ export const getFormById = async (id: string, ownerId: string) => {
 export const formServices = {
     createForm,
     getFormsByOwnerId,
-    // getFormStats,
     getFormById,
     // updateForm,
     // deleteForm,

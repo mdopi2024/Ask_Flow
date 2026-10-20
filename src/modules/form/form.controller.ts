@@ -15,22 +15,24 @@ const createForm = catchAsync(async (req: Request, res: Response) => {
 const getFormsByOwnerId = catchAsync(async (req: Request, res: Response) => {
     const ownerId = (req as any).user.id;
 
+    const rawStatus =
+        typeof req.query.status === 'string' && req.query.status.trim() !== ''
+            ? req.query.status.trim().toUpperCase()
+            : undefined;
+
     const query = formValidator.listFormsQuerySchema.parse({
-        page: req.query.page ?? 1,
-        limit: req.query.limit ?? 10,
-        sort: req.query.sort ?? "newest",
-        status: req.query.status,
-        search: req.query.search,
+        page: req.query.page,
+        limit: req.query.limit,
+        sort: req.query.sort,
+        status: rawStatus,
+        search: req.query.search || undefined,
     });
 
     const data = await formServices.getFormsByOwnerId(ownerId, query);
 
     sendResponse(res, status.OK, "Forms fetched successfully", data);
 });
-// const getFormStats = catchAsync(async (req: Request, res: Response) => {
-//     const data = await formServices.getFormStats((req as any).user.id);
-//     sendResponse(res, status.OK, "Form stats fetched successfully", data);
-// });
+
 
 const getFormById = catchAsync(async (req: Request, res: Response) => {
     const data = await formServices.getFormById(req.params.id as string, (req as any).user.id);

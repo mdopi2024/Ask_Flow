@@ -1,7 +1,7 @@
 {
-  "name": "formly-chat-backend",
+  "name": "askflow-backend",
   "version": "1.0.0",
-  "description": "Formly Chat backend server with Express, Prisma, BetterAuth, PostgreSQL",
+  "description": "Askflow backend server with Express, Prisma, BetterAuth, PostgreSQL",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
