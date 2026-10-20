@@ -77,14 +77,14 @@ export const createQuestion = async (
     });
 };
 
-// export const getQuestionsByFormId = async (formId: string, ownerId: string) => {
-//     await assertFormOwner(formId, ownerId);
+export const getQuestionsByFormId = async (formId: string, ownerId: string) => {
+    await assertFormOwner(formId, ownerId);
 
-//     return prisma.question.findMany({
-//         where: { formId },
-//         orderBy: { order: "asc" },
-//     });
-// };
+    return prisma.question.findMany({
+        where: { formId },
+        orderBy: { order: "asc" },
+    });
+};
 
 // export const updateQuestion = async (
 //     formId: string,
@@ -171,7 +171,7 @@ export const createQuestion = async (
 
 const questionServices = {
     createQuestion,
-    // getQuestionsByFormId,
+    getQuestionsByFormId,
     // updateQuestion,
     // reorderQuestions,
     // deleteQuestion,
