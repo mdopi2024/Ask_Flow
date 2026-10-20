@@ -124,17 +124,20 @@ export const getFormById = async (id: string, ownerId: string) => {
     return data;
 };
 
-
-
 export const updateForm = async (id: string, ownerId: string, payload: UpdateFormInput) => {
     await getOwnedForm(id, ownerId);
 
-    const data = await prisma.form.update({
-        where: { id },
-        data: payload,
-    });
+    const data: Prisma.FormUpdateInput = { ...payload };
 
-    return data;
+    if (payload.status === FormStatus.PUBLISHED) {
+        const questionCount = await prisma.question.count({ where: { formId: id } });
+        if (questionCount === 0) {
+            throw new AppError(status.BAD_REQUEST, "Add at least one question before publishing");
+        }
+        data.publishedAt = new Date();
+    }
+
+    return prisma.form.update({ where: { id }, data });
 };
 
 export const deleteForm = async (id: string, ownerId: string) => {
@@ -145,57 +148,26 @@ export const deleteForm = async (id: string, ownerId: string) => {
     return null;
 };
 
-// export const publishForm = async (id: string, ownerId: string) => {
-//     const form = await getOwnedForm(id, ownerId);
 
-//     if (form.status === FormStatus.PUBLISHED) {
-//         return form;
-//     }
+export const getPublicFormBySlug = async (slug: string) => {
+    const data = await prisma.form.findFirst({
+        where: { slug, status: FormStatus.PUBLISHED },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            slug: true,
+            widgetSettings: true,
+            questions: { orderBy: { order: "asc" } },
+        },
+    });
 
-//     const questionCount = await prisma.question.count({ where: { formId: id } });
+    if (!data) {
+        throw new AppError(status.NOT_FOUND, "Form not found or not published");
+    }
 
-//     if (questionCount === 0) {
-//         throw new AppError(status.BAD_REQUEST, "Add at least one question before publishing");
-//     }
-
-//     const data = await prisma.form.update({
-//         where: { id },
-//         data: { status: FormStatus.PUBLISHED, publishedAt: new Date() },
-//     });
-
-//     return data;
-// };
-
-// export const unpublishForm = async (id: string, ownerId: string) => {
-//     await getOwnedForm(id, ownerId);
-
-//     const data = await prisma.form.update({
-//         where: { id },
-//         data: { status: FormStatus.DRAFT },
-//     });
-
-//     return data;
-// };
-
-// export const getPublicFormBySlug = async (slug: string) => {
-//     const data = await prisma.form.findFirst({
-//         where: { slug, status: FormStatus.PUBLISHED },
-//         select: {
-//             id: true,
-//             title: true,
-//             description: true,
-//             slug: true,
-//             widgetSettings: true,
-//             questions: { orderBy: { order: "asc" } },
-//         },
-//     });
-
-//     if (!data) {
-//         throw new AppError(status.NOT_FOUND, "Form not found or not published");
-//     }
-
-//     return data;
-// };
+    return data;
+};
 
 export const formServices = {
     createForm,
@@ -203,7 +175,5 @@ export const formServices = {
     getFormById,
     updateForm,
     deleteForm,
-    // publishForm,
-    // unpublishForm,
     // getPublicFormBySlug,
 };
