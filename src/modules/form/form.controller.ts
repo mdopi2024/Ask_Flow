@@ -61,20 +61,11 @@ const deleteForm = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.OK, "Form deleted successfully", data);
 });
 
-// const publishForm = catchAsync(async (req: Request, res: Response) => {
-//     const data = await formServices.publishForm(req.params.id as string, (req as any).user.id);
-//     sendResponse(res, status.OK, "Form published successfully", data);
-// });
 
-// const unpublishForm = catchAsync(async (req: Request, res: Response) => {
-//     const data = await formServices.unpublishForm(req.params.id as string, (req as any).user.id);
-//     sendResponse(res, status.OK, "Form unpublished successfully", data);
-// });
-
-// const getPublicForm = catchAsync(async (req: Request, res: Response) => {
-//     const data = await formServices.getPublicFormBySlug(req.params.slug as string);
-//     sendResponse(res, status.OK, "Form fetched successfully", data);
-// });
+const getPublicForm = catchAsync(async (req: Request, res: Response) => {
+    const data = await formServices.getPublicFormBySlug(req.params.slug as string);
+    sendResponse(res, status.OK, "Form fetched successfully", data);
+});
 
 export const formController: Record<string, any> = {
     createForm,
@@ -82,7 +73,5 @@ export const formController: Record<string, any> = {
     getFormById,
     updateForm,
     deleteForm,
-    // publishForm,
-    // unpublishForm,
-    // getPublicForm,
+    getPublicForm
 };

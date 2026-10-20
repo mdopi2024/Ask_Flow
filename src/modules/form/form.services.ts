@@ -175,5 +175,5 @@ export const formServices = {
     getFormById,
     updateForm,
     deleteForm,
-    // getPublicFormBySlug,
+    getPublicFormBySlug,
 };
