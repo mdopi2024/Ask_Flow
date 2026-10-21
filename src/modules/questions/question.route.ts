@@ -11,7 +11,9 @@ const router: Router = Router();
 
 router.post('/:formId', checkAuth(), validateRequest(questionValidator.createQuestionSchema), questionController.createQuestion)
 router.get('/:formId', checkAuth(), questionController.getQuestionsByFormId)
+router.patch('/reorder/:formId', checkAuth(), validateRequest(questionValidator.reorderQuestionsSchema), questionController.reorderQuestions)
 router.patch('/:formId/:questionId', checkAuth(), validateRequest(questionValidator.updateQuestionSchema), questionController.updateQuestion)
+
 
 
 export const questionRouter = router
