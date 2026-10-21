@@ -17,12 +17,12 @@ const getQuestionsByFormId = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.OK, "Questions fetched successfully", data);
 });
 
-// const updateQuestion = catchAsync(async (req: Request, res: Response) => {
-//     const formId = req.params.formId as string;
-//     const questionId = req.params.questionId as string;
-//     const data = await questionServices.updateQuestion(formId, questionId, req.user!.id, req.body);
-//     sendResponse(res, status.OK, "Question updated successfully", data);
-// });
+const updateQuestion = catchAsync(async (req: Request, res: Response) => {
+    const formId = req.params.formId as string;
+    const questionId = req.params.questionId as string;
+    const data = await questionServices.updateQuestion(formId, questionId, req.user!.id, req.body);
+    sendResponse(res, status.OK, "Question updated successfully", data);
+});
 
 // const reorderQuestions = catchAsync(async (req: Request, res: Response) => {
 //     const formId = req.params.formId as string;
@@ -40,7 +40,7 @@ const getQuestionsByFormId = catchAsync(async (req: Request, res: Response) => {
 const questionController: any = {
     createQuestion,
     getQuestionsByFormId,
-    // updateQuestion,
+    updateQuestion,
     // reorderQuestions,
     // deleteQuestion,
 };

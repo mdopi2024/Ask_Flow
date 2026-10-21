@@ -3,7 +3,7 @@ import status from "http-status";
 import prisma from "@/config/prisma";
 import { AppError } from "@/middleware/appError";
 import { QuestionType } from "@/generated/prisma/enums";
-import { CreateQuestionInput } from "@/types/question.types";
+import { CreateQuestionInput, UpdateQuestionInput } from "@/types/question.types";
 
 
 // ---------- helpers ----------
@@ -86,95 +86,94 @@ export const getQuestionsByFormId = async (formId: string, ownerId: string) => {
     });
 };
 
-// export const updateQuestion = async (
-//     formId: string,
-//     questionId: string,
-//     ownerId: string,
-//     payload: UpdateQuestionInput
-// ) => {
-//     await assertFormOwner(formId, ownerId);
-//     const existing = await findQuestionOrThrow(formId, questionId);
+export const updateQuestion = async (
+    formId: string,
+    questionId: string,
+    ownerId: string,
+    payload: UpdateQuestionInput
+) => {
+    await assertFormOwner(formId, ownerId);
+    const existing = await findQuestionOrThrow(formId, questionId);
 
-//     // Validate the final state: stored values + the changes
-//     const type = payload.type ?? existing.type;
-//     const options = normalizeOptions(type, payload.options ?? existing.options);
+    // Validate the final state: stored values + the changes
+    const type = payload.type ?? existing.type;
+    const options = payload.options ?? existing.options;
 
-//     assertValidChoiceOptions(type, options);
+    assertValidChoiceOptions(type, options);
+    return prisma.question.update({
+        where: { id: questionId },
+        data: payload,
+    });
+};
 
-//     return prisma.question.update({
-//         where: { id: questionId },
-//         data: { ...payload, type, options },
-//     });
-// };
+export const reorderQuestions = async (
+    formId: string,
+    ownerId: string,
+    questionIds: string[]
+) => {
+    await assertFormOwner(formId, ownerId);
 
-// export const reorderQuestions = async (
-//     formId: string,
-//     ownerId: string,
-//     questionIds: string[]
-// ) => {
-//     await assertFormOwner(formId, ownerId);
+    const questions = await prisma.question.findMany({
+        where: { formId },
+        select: { id: true },
+    });
 
-//     const questions = await prisma.question.findMany({
-//         where: { formId },
-//         select: { id: true },
-//     });
+    const existingIds = new Set(questions.map((question) => question.id));
+    const coversAllQuestions =
+        existingIds.size === questionIds.length &&
+        questionIds.every((id) => existingIds.has(id));
 
-//     const existingIds = new Set(questions.map((question) => question.id));
-//     const coversAllQuestions =
-//         existingIds.size === questionIds.length &&
-//         questionIds.every((id) => existingIds.has(id));
+    if (!coversAllQuestions) {
+        throw new AppError(
+            status.BAD_REQUEST,
+            "questionIds must contain every question of this form exactly once"
+        );
+    }
 
-//     if (!coversAllQuestions) {
-//         throw new AppError(
-//             status.BAD_REQUEST,
-//             "questionIds must contain every question of this form exactly once"
-//         );
-//     }
+    await prisma.$transaction(
+        questionIds.map((id, index) =>
+            prisma.question.update({ where: { id }, data: { order: index } })
+        )
+    );
 
-//     await prisma.$transaction(
-//         questionIds.map((id, index) =>
-//             prisma.question.update({ where: { id }, data: { order: index } })
-//         )
-//     );
+    return getQuestionsByFormId(formId, ownerId);
+};
 
-//     return getQuestionsByFormId(formId, ownerId);
-// };
+export const deleteQuestion = async (
+    formId: string,
+    questionId: string,
+    ownerId: string
+) => {
+    await assertFormOwner(formId, ownerId);
+    await findQuestionOrThrow(formId, questionId);
 
-// export const deleteQuestion = async (
-//     formId: string,
-//     questionId: string,
-//     ownerId: string
-// ) => {
-//     await assertFormOwner(formId, ownerId);
-//     await findQuestionOrThrow(formId, questionId);
+    await prisma.$transaction(async (tx) => {
+        await tx.question.delete({ where: { id: questionId } });
 
-//     await prisma.$transaction(async (tx) => {
-//         await tx.question.delete({ where: { id: questionId } });
+        // Close the gap so order stays 0..n-1
+        const remaining = await tx.question.findMany({
+            where: { formId },
+            orderBy: { order: "asc" },
+            select: { id: true },
+        });
 
-//         // Close the gap so order stays 0..n-1
-//         const remaining = await tx.question.findMany({
-//             where: { formId },
-//             orderBy: { order: "asc" },
-//             select: { id: true },
-//         });
+        for (const [index, question] of remaining.entries()) {
+            await tx.question.update({
+                where: { id: question.id },
+                data: { order: index },
+            });
+        }
+    });
 
-//         for (const [index, question] of remaining.entries()) {
-//             await tx.question.update({
-//                 where: { id: question.id },
-//                 data: { order: index },
-//             });
-//         }
-//     });
-
-//     return null;
-// };
+    return null;
+};
 
 const questionServices = {
     createQuestion,
     getQuestionsByFormId,
-    // updateQuestion,
-    // reorderQuestions,
-    // deleteQuestion,
+    updateQuestion,
+    reorderQuestions,
+    deleteQuestion,
 };
 
 export default questionServices;
