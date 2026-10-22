@@ -5,8 +5,8 @@ import { Request, Response } from "express";
 import { responseServices } from "./response.services";
 import responseValidator from "./response.validator";
 import { ListResponsesQuery, SubmitResponseInput } from "@/types/response.types";
+import { SortOrder } from "@/generated/prisma/internal/prismaNamespace";
 
-// PUBLIC: called by the chatbot widget / public form page
 
 const submitResponse = catchAsync(async (req: Request, res: Response) => {
     const payload = req.body as SubmitResponseInput;
@@ -18,13 +18,16 @@ const submitResponse = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.CREATED, "Response submitted successfully", data);
 });
 
-// OWNER: dashboard list
+
 const getResponsesByFormId = catchAsync(async (req: Request, res: Response) => {
-    const query: ListResponsesQuery = responseValidator.listResponsesQuerySchema.parse({
-        page: req.query.page,
-        limit: req.query.limit,
-        sort: req.query.sort,
-    });
+    const { page = 1, limit = 10, sort = "newest" } =
+        req.query as unknown as Partial<ListResponsesQuery>;
+
+    const query: ListResponsesQuery = {
+        page: Number(page),
+        limit: Number(limit),
+        sort,
+    };
 
     const data = await responseServices.getResponsesByFormId(
         req.params.formId as string,
@@ -35,7 +38,7 @@ const getResponsesByFormId = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.OK, "Responses fetched successfully", data);
 });
 
-// OWNER: single submission
+
 const getResponseById = catchAsync(async (req: Request, res: Response) => {
     const data = await responseServices.getResponseById(
         req.params.id as string,
@@ -45,7 +48,6 @@ const getResponseById = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.OK, "Response fetched successfully", data);
 });
 
-// OWNER: delete submission
 const deleteResponse = catchAsync(async (req: Request, res: Response) => {
     const data = await responseServices.deleteResponse(
         req.params.id as string,

@@ -27,7 +27,7 @@ const assertOwnsForm = async (formId: string, ownerId: string) => {
     return form;
 };
 
-/** Validates a single value against its question and returns the normalized value. */
+
 const validateValue = (question: QuestionLike, rawValue: string): string => {
     const value = rawValue.trim();
     const fail = (msg: string): never => {
@@ -57,7 +57,7 @@ const validateValue = (question: QuestionLike, rawValue: string): string => {
 
 //--------------------------------------------
 
-// PUBLIC: respondents can only create a response
+
 export const submitResponse = async (
     slug: string,
     payload: SubmitResponseInput,
@@ -132,7 +132,6 @@ export const submitResponse = async (
     return { submitted: true };
 };
 
-// OWNER: list submissions for a form
 export const getResponsesByFormId = async (
     formId: string,
     ownerId: string,
@@ -168,7 +167,7 @@ export const getResponsesByFormId = async (
     };
 };
 
-// OWNER: view a single submission
+
 export const getResponseById = async (id: string, ownerId: string) => {
     const data = await prisma.response.findFirst({
         where: { id, form: { ownerId } },
@@ -185,7 +184,6 @@ export const getResponseById = async (id: string, ownerId: string) => {
     return data;
 };
 
-// OWNER: delete a submission (remove this if you want responses to be permanent)
 export const deleteResponse = async (id: string, ownerId: string) => {
     await getResponseById(id, ownerId);
 
