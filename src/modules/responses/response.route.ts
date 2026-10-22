@@ -23,7 +23,7 @@ router.options('/public/:slug', publicCors)
 router.post('/public/:slug', publicCors, submitLimiter, validateRequest(responseValidator.submitResponseSchema), responseController.submitResponse)
 
 // OWNER (auth required): dashboard
-router.get('/:formId', checkAuth(), validateRequest(responseValidator.listResponsesQuerySchema), responseController.getResponsesByFormId)
+router.get('/form/:formId', checkAuth(), validateRequest(responseValidator.listResponsesQuerySchema), responseController.getResponsesByFormId)
 router.get('/:id', checkAuth(), responseController.getResponseById)
 router.delete('/:id', checkAuth(), responseController.deleteResponse)
 
