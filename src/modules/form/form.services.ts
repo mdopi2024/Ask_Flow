@@ -33,7 +33,7 @@ const getOwnedForm = async (id: string, ownerId: string) => {
 //--------------------------------------------
 
 export const createForm = async (ownerId: string, payload: CreateFormInput) => {
-    const { title, description } = payload;
+    const { title, description, widgetSettings } = payload;
 
     const data = await prisma.form.create({
         data: {
@@ -41,7 +41,9 @@ export const createForm = async (ownerId: string, payload: CreateFormInput) => {
             description: description ?? null,
             slug: generateSlug(title),
             ownerId,
+            widgetSettings: { create: widgetSettings ?? {} },
         },
+        include: { widgetSettings: true },
     });
 
     return data;
@@ -125,11 +127,11 @@ export const getFormById = async (id: string, ownerId: string) => {
 };
 
 export const updateForm = async (id: string, ownerId: string, payload: UpdateFormInput) => {
-    await getOwnedForm(id, ownerId);
+    const existing = await getOwnedForm(id, ownerId);
 
     const data: Prisma.FormUpdateInput = { ...payload };
 
-    if (payload.status === FormStatus.PUBLISHED) {
+    if (payload.status === FormStatus.PUBLISHED && existing.status !== FormStatus.PUBLISHED) {
         const questionCount = await prisma.question.count({ where: { formId: id } });
         if (questionCount === 0) {
             throw new AppError(status.BAD_REQUEST, "Add at least one question before publishing");

@@ -1,10 +1,9 @@
 import { FormStatus } from "@/generated/prisma/enums";
+import { createFormSchema, widgetSettingsSchema } from "@/modules/form/form.validator";
+import z from "zod";
 
-
-export interface CreateFormInput {
-    title: string;
-    description?: string | null;
-}
+export type WidgetSettingsInput = z.infer<typeof widgetSettingsSchema>;
+export type CreateFormInput = z.infer<typeof createFormSchema>;
 
 
 
