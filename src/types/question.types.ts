@@ -1,26 +1,7 @@
-import { QuestionType } from "@/generated/prisma/enums";
+import questionValidator from "@/modules/questions/question.validator";
+import * as z from "zod";
 
 
-export interface CreateQuestionInput {
-    type: QuestionType;
-    label: string;
-    placeholder?: string | null;
-    helpText?: string | null;
-    required: boolean;
-    options: string[];
-}
-
-
-
-export interface UpdateQuestionInput {
-    type?: QuestionType;
-    label?: string;
-    placeholder?: string | null;
-    helpText?: string | null;
-    required?: boolean;
-    options?: string[];
-}
-
-export interface ReorderQuestionsInput {
-    questionIds: string[];
-}
+export type CreateQuestionInput = z.infer<typeof questionValidator.createQuestionSchema>;
+export type UpdateQuestionInput = z.infer<typeof questionValidator.updateQuestionSchema>;
+export type ReorderQuestionsInput = z.infer<typeof questionValidator.reorderQuestionsSchema>;

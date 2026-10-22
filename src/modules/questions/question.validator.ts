@@ -16,16 +16,21 @@ export const createQuestionSchema = z
         required: z.boolean().default(true),
         options: optionsSchema.default([]),
     })
+    .strict()
     .refine(
-        (data) => data.type !== QuestionType.MULTIPLE_CHOICE || data.options.length >= 2,
-        { message: "Multiple choice needs at least 2 options", path: ["options"] }
+        (d) => d.type !== QuestionType.MULTIPLE_CHOICE || d.options.length >= 2,
+        { message: "Multiple choice needs at least 2 options", path: ["options"] },
     )
     .refine(
-        (data) => data.type !== QuestionType.MULTIPLE_CHOICE || !hasDuplicates(data.options),
-        { message: "Options must be unique", path: ["options"] }
+        (d) => d.type !== QuestionType.MULTIPLE_CHOICE || !hasDuplicates(d.options),
+        { message: "Options must be unique", path: ["options"] },
+    )
+    .refine(
+        (d) => d.type === QuestionType.MULTIPLE_CHOICE || d.options.length === 0,
+        { message: "Only multiple choice questions can have options", path: ["options"] },
     );
 
-// Cross-field checks against the stored question happen in the service
+// Stored question-এর সাথে cross-check service-এ হবে
 export const updateQuestionSchema = z
     .object({
         type: z.enum(QuestionType).optional(),
@@ -35,16 +40,23 @@ export const updateQuestionSchema = z
         required: z.boolean().optional(),
         options: optionsSchema.optional(),
     })
-    .refine((data) => Object.keys(data).length > 0, {
+    .strict()
+    .refine((d) => Object.keys(d).length > 0, {
         message: "At least one field must be provided",
+    })
+    .refine((d) => !d.options || !hasDuplicates(d.options), {
+        message: "Options must be unique",
+        path: ["options"],
     });
 
-export const reorderQuestionsSchema = z.object({
-    questionIds: z
-        .array(z.string().min(1))
-        .min(1, "questionIds is required")
-        .refine((ids) => !hasDuplicates(ids), { message: "Duplicate question ids" }),
-});
+export const reorderQuestionsSchema = z
+    .object({
+        questionIds: z
+            .array(z.string().min(1))
+            .min(1, "questionIds is required")
+            .refine((ids) => !hasDuplicates(ids), { message: "Duplicate question ids" }),
+    })
+    .strict();
 
 const questionValidator = {
     createQuestionSchema,

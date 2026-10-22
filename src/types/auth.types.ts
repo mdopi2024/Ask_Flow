@@ -1,10 +1,6 @@
-export interface CreateUserInput {
-    name: string;
-    email: string;
-    password: string;
-}
+import authValidator from "@/modules/auth/auth.validator";
+import * as z from "zod";
 
-export interface LoginUserInput {
-    email: string;
-    password: string;
-}
+
+export type CreateUserInput = z.infer<typeof authValidator.createUserSchema>;
+export type LoginUserInput = z.infer<typeof authValidator.loginUserSchema>;

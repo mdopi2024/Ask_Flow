@@ -1,3 +1,4 @@
+// widget.validator.ts
 import { z } from "zod";
 
 const hexColor = z
@@ -28,14 +29,13 @@ export const widgetSettingsSchema = z
     .partial()
     .strict();
 
-export const updateWidgetSettingsSchema = widgetSettingsSchema.refine(
+const updateWidgetSettingsSchema = widgetSettingsSchema.refine(
     (v) => Object.keys(v).length > 0,
     { message: "Nothing to update" },
 );
 
 const widgetSettingsValidator = {
     updateWidgetSettingsSchema,
-    widgetSettingsSchema,
-}
+};
 
-export default widgetSettingsValidator
+export default widgetSettingsValidator;
