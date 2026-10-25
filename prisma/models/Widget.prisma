@@ -4,7 +4,7 @@ model WidgetSettings {
     form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
 
     botName           String   @default("Assistant")
-    primaryColor      String   @default("#4F46E5")
+    primaryColor      String   @default("#0F766E")
     backgroundColor   String   @default("#FFFFFF")
     textColor         String   @default("#111827")
     welcomeMessage    String   @default("Hi there! 👋 Mind answering a few quick questions?")

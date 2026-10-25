@@ -22,11 +22,17 @@ const dashboardCors = cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 });
 
+const PUBLIC_PATH_PREFIXES = [
+  "/api/v1/forms/public/",
+  "/api/v1/responses/public/",
+];
+
 app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith("/api/v1/responses/public/")) return next();
+  if (PUBLIC_PATH_PREFIXES.some((prefix) => req.path.startsWith(prefix))) {
+    return next();
+  }
   return dashboardCors(req, res, next);
 });
-
 app.use(morgan(env.isDev() ? "dev" : "combined"));
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
