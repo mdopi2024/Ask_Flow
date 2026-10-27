@@ -35,7 +35,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use(morgan(env.isDev() ? "dev" : "combined"));
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*", toNodeHandler(auth));
 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true }));

@@ -5,15 +5,27 @@ import { authServices } from "./auth.services";
 import { CreateUserInput, LoginUserInput } from "@/types/auth.types";
 import { Request, Response } from "express";
 
+const setAuthCookies = (res: Response, headers: Headers) => {
+    const cookies = headers.getSetCookie(); // string[]
+    if (cookies.length) {
+        res.setHeader("Set-Cookie", cookies);
+    }
+};
+
 const signUpUser = catchAsync(async (req: Request, res: Response) => {
     const payload: CreateUserInput = req.body;
-    const data = await authServices.createUser(payload);
+    const { headers, data } = await authServices.createUser(payload);
+
+    setAuthCookies(res, headers);
     sendResponse(res, status.OK, "User registered successfully", data);
 });
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
     const payload: LoginUserInput = req.body;
-    const data = await authServices.signInUser(payload);
+    const { headers, data } = await authServices.signInUser(payload);
+    console.log(headers)
+
+    setAuthCookies(res, headers);
     sendResponse(res, status.OK, "User logged in successfully", data);
 });
 
