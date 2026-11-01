@@ -13,6 +13,25 @@ const createForm = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, status.CREATED, "Form created successfully", data);
 });
 
+const getAllForms = catchAsync(async (req: Request, res: Response) => {
+    const rawStatus =
+        typeof req.query.status === 'string' && req.query.status.trim() !== ''
+            ? req.query.status.trim().toUpperCase()
+            : undefined;
+
+    const query = formValidator.listFormsQuerySchema.parse({
+        page: req.query.page,
+        limit: req.query.limit,
+        sort: req.query.sort,
+        status: rawStatus,
+        search: req.query.search || undefined,
+    });
+
+    const data = await formServices.getAllForms(query);
+
+    sendResponse(res, status.OK, "All forms fetched successfully", data);
+});
+
 const getFormsByOwnerId = catchAsync(async (req: Request, res: Response) => {
     const ownerId = (req as any).user.id;
 
@@ -69,6 +88,7 @@ const getPublicForm = catchAsync(async (req: Request, res: Response) => {
 
 export const formController: Record<string, any> = {
     createForm,
+    getAllForms,
     getFormsByOwnerId,
     getFormById,
     updateForm,

@@ -5,6 +5,7 @@ import { formController } from "./form.controller";
 import validateRequest from "@/middleware/zod.validate";
 import formValidator from "./form.validator";
 import { checkAuth } from "@/middleware/session.middleware";
+import { Role } from "@/generated/prisma/enums";
 
 const router: Router = Router();
 
@@ -23,7 +24,8 @@ router.get("/public/:slug", publicCors, readLimiter, formController.getPublicFor
 
 // ---------- Owner (auth সহ) ----------
 router.post("/", checkAuth(), validateRequest(formValidator.createFormSchema), formController.createForm);
-router.get("/", checkAuth(), formController.getFormsByOwnerId);
+router.get("/", checkAuth(Role.ADMIN), formController.getAllForms);
+router.get("/my", checkAuth(), formController.getFormsByOwnerId);
 router.get("/:id", checkAuth(), formController.getFormById);
 router.patch("/:id", checkAuth(), validateRequest(formValidator.updateFormSchema), formController.updateForm);
 router.delete("/:id", checkAuth(), formController.deleteForm);

@@ -48,6 +48,67 @@ export const createForm = async (ownerId: string, payload: CreateFormInput) => {
 
     return data;
 };
+export const getAllForms = async (query: ListFormsQuery) => {
+    const { page, limit, status, search, sort } = query;
+
+    const where: Prisma.FormWhereInput = {};
+
+    if (status) where.status = status;
+
+    if (search) {
+        where.title = { contains: search, mode: "insensitive" };
+    }
+
+    const orderBy: Prisma.FormOrderByWithRelationInput = {
+        createdAt: sort === "newest" ? "desc" : "asc",
+    };
+
+    const [items, total, statusGroups, totalResponses] = await Promise.all([
+        prisma.form.findMany({
+            where,
+            orderBy,
+            skip: (page - 1) * limit,
+            take: limit,
+            include: {
+                owner: { select: { id: true, name: true, email: true } },
+                _count: { select: { questions: true, responses: true } },
+            },
+        }),
+
+        prisma.form.count({ where }),
+
+        prisma.form.groupBy({
+            by: ["status"],
+            _count: { _all: true },
+        }),
+
+        prisma.response.count(),
+    ]);
+
+    const countOf = (s: FormStatus) =>
+        statusGroups.find((g) => g.status === s)?._count._all ?? 0;
+
+    const publishedForms = countOf(FormStatus.PUBLISHED);
+    const draftForms = countOf(FormStatus.DRAFT);
+    const unpublishedForms = countOf(FormStatus.UNPUBLISHED);
+
+    return {
+        items,
+        meta: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+        },
+        stats: {
+            totalForms: publishedForms + draftForms + unpublishedForms,
+            publishedForms,
+            draftForms,
+            unpublishedForms,
+            totalResponses,
+        },
+    };
+};
 
 export const getFormsByOwnerId = async (ownerId: string, query: ListFormsQuery) => {
     const { page, limit, status, search, sort } = query;
@@ -173,6 +234,7 @@ export const getPublicFormBySlug = async (slug: string) => {
 
 export const formServices = {
     createForm,
+    getAllForms,
     getFormsByOwnerId,
     getFormById,
     updateForm,
