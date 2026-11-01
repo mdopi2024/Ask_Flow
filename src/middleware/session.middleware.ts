@@ -25,8 +25,7 @@ const toAuthUser = (user: {
 
 const sendError = (res: Response, code: number, message: string) =>
   res.status(code).json({ success: false, message });
-
-export const checkAuth = (roles: Role[] = []) => {
+export const checkAuth = (...roles: Role[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const session = await auth.api.getSession({
@@ -43,7 +42,6 @@ export const checkAuth = (roles: Role[] = []) => {
         return sendError(res, status.FORBIDDEN, "This account has been deleted");
       }
 
-
       if (roles.length > 0 && !roles.includes(user.role)) {
         return sendError(
           res,
@@ -51,6 +49,7 @@ export const checkAuth = (roles: Role[] = []) => {
           "You do not have permission to access this resource"
         );
       }
+
       req.user = user;
       next();
     } catch (error) {
